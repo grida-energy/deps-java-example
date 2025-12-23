@@ -23,6 +23,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 import io.github.grida_energy.deps.preset.bess.v1.ModelV1.BessMeasure;
+import io.github.grida_energy.deps.preset.station_cast.v1.ModelV1.Rpc.CastMeasure;
 import io.github.grida_energy.deps.vnd.v1.ParameterV1.ParamMeta;
 import io.github.grida_energy.deps.vnd.v1.AlarmV1.AlarmMeta;
 import io.github.grida_energy.deps.vnd.v1.AlarmV1.AlarmData;
@@ -91,6 +92,45 @@ public class SubExample {
                     case "/vnd/alarm":
                         AlarmData alarmData = AlarmData.parseFrom(message.getPayload());
                         System.out.println("Received message: " + alarmData.toString() + " on topic " + topic);
+                        break;
+                    default:
+                        System.out.println("Unknown topic: " + topic + ", " + sub_topic);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void deliveryComplete(IMqttDeliveryToken token) {
+            System.out.println("Delivery of message with token " + token.getMessageId() + " complete.");
+        }
+    }
+
+    public static class CastMqttCallback implements MqttCallback {
+        String topic_prefix;
+
+        public CastMqttCallback(String topic) {
+            this.topic_prefix = topic;
+        }
+
+        @Override
+        public void connectionLost(Throwable cause) {
+            System.out.println("Connection to MQTT broker lost! " + cause.getMessage());
+        }
+
+        @Override
+        public void messageArrived(String topic, MqttMessage message) throws Exception {
+            try {
+                System.out.println("messageArrived called" + topic);
+                String sub_topic = "-";
+                if (topic.startsWith(topic_prefix)) {
+                    sub_topic = topic.substring(topic_prefix.length());
+                }
+                switch (sub_topic) {
+                    case "/measure":
+                        CastMeasure measure = CastMeasure.parseFrom(message.getPayload());
+                        System.out.println("Received message: " + measure.toString() + " on topic " + topic);
                         break;
                     default:
                         System.out.println("Unknown topic: " + topic + ", " + sub_topic);
@@ -199,6 +239,7 @@ public class SubExample {
 
         try (MqttClient client = new MqttClient(opts.mqtt_url, opts.client_id)) {
             client.setCallback(new SimpleMqttCallback(opts.topic));
+            // client.setCallback(new CastMqttCallback(opts.topic));
 
             MqttConnectOptions options = new MqttConnectOptions();
             options.setSocketFactory(socketFactory);

@@ -13,6 +13,7 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+    // mavenLocal()
 }
 
 dependencies {
@@ -25,7 +26,7 @@ dependencies {
     implementation(libs.guava)
     // implementation("com.github.grida-energy:lib:1.0.0")
     implementation("com.google.protobuf:protobuf-java:4.26.1")
-    implementation("io.github.grida-energy:deps:1.0.1")
+    implementation("io.github.grida-energy:deps:1.0.2")
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
     implementation("info.picocli:picocli:4.7.5")
 }
